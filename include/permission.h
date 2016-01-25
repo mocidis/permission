@@ -32,9 +32,7 @@ struct db_s {
     entry_t *data_list[MAX_RECORD];
 };
 
-db_t permission_db;
-db_t login_db;
-db_t passphrase_db;
+static int find_idx_by_key(char key_arr[][255], char *key);
 
 int load_database(opool_t *opool, hash_table_t *ht, char *table_name, db_t *database);
 void load_database_reflex(opool_t *opool, hash_table_t *ht, char *table_name, db_t *database, int key_arr_size);
