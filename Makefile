@@ -4,7 +4,6 @@ include custom.mk
 APP_DIR:=.
 
 APP:=test_table
-
 SRCS:=$(APP).c
 
 HT_DIR:=../hash-table
