@@ -12,7 +12,7 @@
 #include "proto-constants.h"
 
 #define HASH_COUNT 10
-#define MAX_RECORD 50
+#define MAX_RECORD 10
 
 extern char db_path[];
 
@@ -34,11 +34,12 @@ struct db_s {
 
 static int find_idx_by_key(char key_arr[][255], char *key);
 
-int load_database(opool_t *opool, hash_table_t *ht, char *table_name, db_t *database);
-void load_database_reflex(opool_t *opool, hash_table_t *ht, char *table_name, db_t *database, int key_arr_size);
-void update_database(opool_t *opool, hash_table_t *ht, char *table_name, char *id, char *passphrase);
+void load_database(opool_t *opool, hash_table_t *ht, char *table_name, db_t *database);
+void update_database(opool_t *opool, hash_table_t *ht, char *table_name, db_t *db);
 void update_table(opool_t *opool, hash_table_t *ht, char *table_name, db_t *db, char *field_1, char *field_2);
+void update_permission_table(opool_t *opool, hash_table_t *ht, char *table_name, db_t *db, char *field_1, char *field_2);
 void show_record(hash_table_t *ht, char *key);
+
 entry_t *get_data_list(hash_table_t *ht, char *key);
 
 #endif

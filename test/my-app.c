@@ -12,9 +12,6 @@
 
 #include "permission.h"
 
-#define HASH_COUNT 10
-#define MAX_RECORD 50
-
 db_t permission_db;
 db_t login_db;
 db_t passphrase_db;
@@ -38,7 +35,7 @@ int main() {
 
     pj_caching_pool_init(&cp, NULL, 1024);
     pool = pj_pool_create(&cp.factory, "pool", 1024, 1024, NULL);
-    opool_init(&opool, 40, sizeof(entry_t), pool);
+    opool_init(&opool, 100, sizeof(entry_t), pool);
 
     //INIT HASH TABLE
     ht_init(&ht_permission, pool);
@@ -51,18 +48,12 @@ int main() {
     ht_create(&ht_passphrase, HASH_COUNT);
 
     //=========== LOAD DATA FROM DB THEN INSERT INTO HASH TABLE ==========//
-    key_arr_size = load_database(&opool, &ht_permission, "permission", &permission_db);
-    load_database_reflex(&opool, &ht_permission, "permission", &permission_db, key_arr_size);
+    load_database(&opool, &ht_permission, "permission", &permission_db);
     //load_database(&opool, &ht_login, "login", &login_db);
-    load_database(&opool, &ht_passphrase, "passphrase", &passphrase_db);
+    //load_database(&opool, &ht_passphrase, "passphrase", &passphrase_db);
 
     //======================= PROCESS DATA FROM HASH TABLE================//
-    //HT_permission sample:
-    // Acc_1 | RIUC11, RIUC12
-    // RIUC11 | RIUC11, Acc_1
-    //entry_t *temp2, *entry;
-
-#if 1
+#if 0
     printf("=============== Permission =============\n");
     show_record(&ht_permission, "Acc_1");
     show_record(&ht_permission, "Acc_2");
@@ -75,27 +66,46 @@ int main() {
     show_record(&ht_login, "Acc_2");
 #endif
     printf("=============== Passphrase =============\n");
+#if 0
     show_record(&ht_passphrase, "OIUC1");
     show_record(&ht_passphrase, "OIUC2");
     show_record(&ht_passphrase, "RIUC11");
     show_record(&ht_passphrase, "RIUC12");
     
-    update_table(&opool, &ht_passphrase, "passphrase", &passphrase_db, "OIUC2", "qqqqqqq");
-    update_table(&opool, &ht_permission, "permission", &permission_db, "Acc_3", "RIUC11");
-    update_table(&opool, &ht_permission, "permission", &permission_db, "Acc_1", "RIUC11");
-    update_table(&opool, &ht_permission, "permission", &permission_db, "Acc_1", "RIUC13");
+
     //update_table(&opool, &ht_passphrase, "passphrase", &passphrase_db, "COORD", COORD_PP);
     show_record(&ht_passphrase, "OIUC2");
     show_record(&ht_passphrase, "RIUC11");
+    show_record(&ht_passphrase, "RIUC14");
 
     show_record(&ht_permission, "Acc_3");
     show_record(&ht_permission, "Acc_1");
     show_record(&ht_permission, "RIUC11");
+    show_record(&ht_permission, "RIUC14");
+    show_record(&ht_permission, "Acc_4");
+    show_record(&ht_permission, "OIUC1");
+#endif
+#if 0
+    update_table(&opool, &ht_passphrase, "passphrase", &passphrase_db, "OIUC2", "qqqqqqq");
+    update_table(&opool, &ht_passphrase, "passphrase", &passphrase_db, "RIUC14", "abcxyz");
+    update_table(&opool, &ht_passphrase, "passphrase", &passphrase_db, "RIUC14", "12312312312");
+
+    update_database(&opool, &ht_passphrase, "passphrase", &passphrase_db);
+#endif
+#if 1
+    update_permission_table(&opool, &ht_permission, "permission", &permission_db, "Acc_3", "RIUC11");
+    update_permission_table(&opool, &ht_permission, "permission", &permission_db, "Acc_3", "RIUC14");
+    update_permission_table(&opool, &ht_permission, "permission", &permission_db, "Acc_1", "RIUC11");
+    update_permission_table(&opool, &ht_permission, "permission", &permission_db, "Acc_1", "RIUC13");
+    update_permission_table(&opool, &ht_permission, "permission", &permission_db, "Acc_4", "OIUC1");
+
+    update_permission_database(&opool, &ht_permission, &permission_db);
+#endif
 
     //==================== check_permission_table && send passphrase ========================//
 #if 0
     //Already has sender_id (user_id in permission_table)
-    char user_id[] = "Acc_1";
+    char user_id[] = "Acc_3";
 
     entry_t *temp, *temp2, *entry, *entry2;
     entry_t *passphrase_list;
