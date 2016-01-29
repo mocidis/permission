@@ -36,11 +36,14 @@ struct db_s {
 int get_idx(char key_arr[][255], char *key);
 
 void load_database(opool_t *opool, db_t *database, char *table_name);
+
 void update_database(opool_t *opool, db_t *database, char *table_name);
+void update_permission_database(opool_t *opool, db_t *database);
+
 void update_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2);
 void update_permission_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2);
-void show_record(db_t *database, char *key);
 
+void show_record(db_t *database, char *key);
 void show_table(db_t *db);
 
 entry_t *get_data_list(hash_table_t *ht, char *key);

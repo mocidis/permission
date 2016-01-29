@@ -32,7 +32,7 @@ void show_table(db_t *db) {
         if (db->key_arr[i][0] != '\0') {
             printf("key_arr[%d]: %s - ", i, db->key_arr[i]);
             data_list = (entry_t *)ht_get_item(&db->ht, (void *)db->key_arr[i]);
-            DL_FOREACH_SAFE(db->data_list[i], temp, entry) {
+            DL_FOREACH_SAFE(data_list, temp, entry) {
                 printf(" %s |", temp->value);
             }
             printf("\n");
@@ -42,7 +42,7 @@ void show_table(db_t *db) {
 
 void load_database(opool_t *opool, db_t *database, char *table_name) {
     sqlite3 *db;
-    char sql[50], key[10], key_temp[10];
+    char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
     int i, idx, n;
 
@@ -54,6 +54,7 @@ void load_database(opool_t *opool, db_t *database, char *table_name) {
     CALL_SQLITE (open (db_path, &db));
 
     n = sprintf(sql ,"SELECT *FROM %s", table_name);
+    sql[n] = '\0';
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
 
     //==================== Delele previous data of table ========================//   
@@ -73,7 +74,6 @@ void load_database(opool_t *opool, db_t *database, char *table_name) {
         ansi_copy_str(key_temp, (char *)sqlite3_column_text(stmt, 0)); 
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
         idx = get_idx(database->key_arr, key_temp);
-        //printf("key: %s - idx: %d\n", key_temp, idx);      
         if (idx < 0) {
             ansi_copy_str(database->key_arr[i], key_temp);
             DL_APPEND(database->data_list[i], temp);
@@ -115,26 +115,25 @@ void load_database(opool_t *opool, db_t *database, char *table_name) {
         }
     }
 #endif
-    //int length = get_array_length(database->key_arr);
 }
 
 //============================ update_database =======================================//
 void update_database(opool_t *opool, db_t *database, char *table_name) {
     sqlite3 *db;
-    char sql[255], key[10], key_temp[10];
-    char column1[10], column2[10];
+    char sql[255];
     sqlite3_stmt *stmt;
     int i, n;
-    entry_t *temp, *temp2, *entry;
+    entry_t *temp, *entry;
     entry_t *data_list;
 
-    //=========== DELETE ALL RACORD OF TABLE ===================//
+    //=========== DELETE ALL RECORD OF TABLE ===================//
     CALL_SQLITE (open (db_path, &db));
     n = sprintf(sql, "DELETE FROM %s ", table_name);
+    sql[n] = '\0';
     printf("%s\n", sql);
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
-
     CALL_SQLITE_EXPECT (step (stmt), DONE);
+
 #if 1
     int length = get_array_length(database->key_arr);
     for (i = 0 ; i < length; i++) {
@@ -151,16 +150,16 @@ void update_database(opool_t *opool, db_t *database, char *table_name) {
 
 void update_permission_database(opool_t *opool, db_t *database) {
     sqlite3 *db;
-    char sql[255], key[10], key_temp[10];
-    char column1[10], column2[10];
+    char sql[255];
     sqlite3_stmt *stmt;
     int i, n;
-    entry_t *temp, *temp2, *entry;
+    entry_t *temp, *entry;
     entry_t *data_list;
 
     //=========== DELETE ALL RACORD OF TABLE ===================//
     CALL_SQLITE (open (db_path, &db));
     n = sprintf(sql, "DELETE FROM permission");
+    sql[n]='\0';
     printf("%s\n", sql);
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
 
@@ -184,26 +183,21 @@ void update_permission_database(opool_t *opool, db_t *database) {
     }
 #endif
 }
-//======================== update table ==================================//
 static int value_cmp(entry_t *n1, entry_t *n2) {
     return strncmp(n1->value, n2->value, sizeof(n2->value));
 }
 
+//======================== update table ==================================//
 #if 1
 void update_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2) {
     int length, idx;
     opool_item_t *item = NULL;
-    opool_item_t *item2 = NULL;
 
-    entry_t *temp, *to_return, *entry, *temp2;
+    entry_t *temp, *to_return;
 
     item = opool_get(opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
-
-    item2 = opool_get(opool);
-    EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
-    temp2 = (entry_t *)item2->data;
 
     printf("UPDATE TABLE %s VALUES('%s', '%s')\n", table_name, field_1, field_2);
 
@@ -234,7 +228,7 @@ void update_permission_table(opool_t *opool, db_t *database, char *table_name, c
     opool_item_t *item = NULL;
     opool_item_t *item2 = NULL;
 
-    entry_t *temp, *to_return, *entry, *temp2;
+    entry_t *temp, *to_return, *temp2;
 
     item = opool_get(opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
@@ -264,7 +258,7 @@ void update_permission_table(opool_t *opool, db_t *database, char *table_name, c
                 DL_APPEND(database->data_list[idx], temp);
             }
     }
-    //Specific for permission talbe
+    //For permission talbe only
 #if 1
     ansi_copy_str(temp2->value, field_1);
     idx = get_idx(database->key_arr, field_2);

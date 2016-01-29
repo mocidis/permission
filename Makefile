@@ -21,7 +21,7 @@ O_SRCS:=object-pool.c
 PER_DIR:=.
 PER_SRCS:=permission.c
 
-CFLAGS:=-DPJ_AUTOCONF=1 -O2 -DPJ_IS_BIG_ENDIAN=0 -DPJ_IS_LITTLE_ENDIAN=1 -fms-extensions 
+CFLAGS:=-DPJ_AUTOCONF=1 -O2 -DPJ_IS_BIG_ENDIAN=0 -DPJ_IS_LITTLE_ENDIAN=1 -fms-extensions -Wall
 CFLAGS+=-I$(CMM_DIR)/include
 CFLAGS+=-I$(LIBS_DIR)/include
 CFLAGS+=-I$(LIBS_DIR)/include/json-c

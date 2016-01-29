@@ -16,9 +16,6 @@ db_t login_db;
 db_t passphrase_db;
 
 int main() {
-    int key_arr_size;
-
-    pj_status_t status;
     pj_caching_pool cp;
     pj_pool_t *pool;
     opool_t opool;
@@ -99,7 +96,7 @@ int main() {
     //Already has sender_id (user_id in permission_table)
     char user_id[] = "RIUC12";
 
-    entry_t *temp, *temp2, *entry, *entry2;
+    entry_t *temp, *entry;
     entry_t *passphrase_list;
     entry_t *device_id_list;
     //Get list of device id belongs to user_id
