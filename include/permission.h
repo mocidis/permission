@@ -12,7 +12,7 @@
 #include "proto-constants.h"
 
 #define HASH_COUNT 10
-#define MAX_RECORD 10
+#define MAX_RECORD HASH_COUNT
 
 extern char db_path[];
 
@@ -28,20 +28,27 @@ struct entry_s {
 typedef struct db_s db_t;
 
 struct db_s {
-    char key_arr[MAX_RECORD][255];
-    entry_t *data_list[MAX_RECORD];
+    char *key_arr[MAX_RECORD];
+    opool_t o_key;
+    opool_t o_value;
+
     hash_table_t ht;
 };
 
 int get_idx(char key_arr[][255], char *key);
 
-void load_database(opool_t *opool, db_t *database, char *table_name);
+void load_passphrase_db(opool_t *opool, db_t *database);
+void update_passphrase_table(opool_t *opool, db_t *database, char *field_1, char *field_2);
+
+void load_permission_db(opool_t *opool, db_t *database);
+void update_permission_table(opool_t *opool, db_t *database, char *field_1, char *field_2);
+
+void load_login_db(opool_t *opool, db_t *database);
 
 void update_database(opool_t *opool, db_t *database, char *table_name);
 void update_permission_database(opool_t *opool, db_t *database);
 
 void update_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2);
-void update_permission_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2);
 
 void show_record(db_t *database, char *key);
 void show_table(db_t *db);
