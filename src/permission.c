@@ -22,11 +22,10 @@ void show_table(db_t *db) {
 }
 
 void perm_init(db_t *database, pj_pool_t *pool) {
-    opool_init(&database->o_key, 100, sizeof(entry_t), pool);
-    opool_init(&database->o_value, 100, sizeof(entry_t), pool);
+    opool_init(&database->opool, 100, sizeof(entry_t), pool);
 }
 
-void load_login_db(login_table_t *database) {
+void load_login_db(login_table_t *l_table) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
@@ -50,24 +49,24 @@ void load_login_db(login_table_t *database) {
 
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(&database->o_value);
+        item = opool_get(&l_table->opool);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
         ansi_copy_str(key_temp, (char *)sqlite3_column_text(stmt, 0)); 
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
-        data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
+        data_list = (entry_t *)ht_get_item(&l_table->ht, (void *)key_temp);
         if (data_list == NULL) {
-            item2 = opool_get(&database->o_key);
+            item2 = opool_get(&l_table->opool);
             EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
             temp2 = (entry_t *)item2->data;
 
             ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
 
-            DL_APPEND(database->key_list, temp2);
+            DL_APPEND(l_table->key_list, temp2);
 
             DL_APPEND(data_list, temp);
-            ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
+            ht_add_item(&l_table->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
         else {
             DL_APPEND(data_list, temp);
@@ -75,7 +74,7 @@ void load_login_db(login_table_t *database) {
     }
 }
 
-void load_passphrase_db(passphrase_table_t *database) {
+void load_passphrase_db(passphrase_table_t *pph_table) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
@@ -98,24 +97,24 @@ void load_passphrase_db(passphrase_table_t *database) {
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(&database->o_value);
+        item = opool_get(&pph_table->opool);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
         ansi_copy_str(key_temp, (char *)sqlite3_column_text(stmt, 0)); 
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
-        data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
+        data_list = (entry_t *)ht_get_item(&pph_table->ht, (void *)key_temp);
         if (data_list == NULL) {
-            item2 = opool_get(&database->o_key);
+            item2 = opool_get(&pph_table->opool);
             EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
             temp2 = (entry_t *)item2->data;
 
             ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
 
-            DL_APPEND(database->key_list, temp2);
+            DL_APPEND(pph_table->key_list, temp2);
 
             DL_APPEND(data_list, temp);
-            ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
+            ht_add_item(&pph_table->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
         else {
             DL_APPEND(data_list, temp);
@@ -123,7 +122,7 @@ void load_passphrase_db(passphrase_table_t *database) {
     }
 }
 
-void load_permission_db(permission_table_t *database) {
+void load_permission_db(permission_table_t *p_table) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
@@ -147,24 +146,24 @@ void load_permission_db(permission_table_t *database) {
 
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(&database->o_value);
+        item = opool_get(&p_table->opool);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
         ansi_copy_str(key_temp, (char *)sqlite3_column_text(stmt, 0)); 
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
-        data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
+        data_list = (entry_t *)ht_get_item(&p_table->ht, (void *)key_temp);
         if (data_list == NULL) {
-            item2 = opool_get(&database->o_key);
+            item2 = opool_get(&p_table->opool);
             EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
             temp2 = (entry_t *)item2->data;
 
             ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
 
-            DL_APPEND(database->key_list, temp2);
+            DL_APPEND(p_table->key_list, temp2);
 
             DL_APPEND(data_list, temp);
-            ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
+            ht_add_item(&p_table->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
         else {
             DL_APPEND(data_list, temp);
@@ -172,16 +171,16 @@ void load_permission_db(permission_table_t *database) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(&database->o_value);
+        item = opool_get(&p_table->opool);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
         ansi_copy_str(key_temp, (char *)sqlite3_column_text(stmt, 1)); 
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 0));
-        data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
+        data_list = (entry_t *)ht_get_item(&p_table->ht, (void *)key_temp);
         if (data_list == NULL) {
             DL_APPEND(data_list, temp);
-            ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 1), data_list);
+            ht_add_item(&p_table->ht, (void *)sqlite3_column_text(stmt, 1), data_list);
         }
         else {
             DL_APPEND(data_list, temp);
@@ -194,14 +193,14 @@ static int value_cmp(entry_t *n1, entry_t *n2) {
 }
 
 //======================== update table ==================================//
-void add_new_passphrase(passphrase_table_t *database, char *field_1, char *field_2) {
+void add_passphrase(passphrase_table_t *pph_table, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(&database->o_value);
+    item = opool_get(&database->opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -212,7 +211,7 @@ void add_new_passphrase(passphrase_table_t *database, char *field_1, char *field
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
-        item2 = opool_get(&database->o_key);
+        item2 = opool_get(&database->opool);
         EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
         temp2 = (entry_t *)item2->data;
 
@@ -235,14 +234,14 @@ void add_new_passphrase(passphrase_table_t *database, char *field_1, char *field
     }
 }
 
-void add_new_account(login_table_t *database, char *field_1, char *field_2) {
+void add_new_account(login_table_t *l_table, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(&database->o_value);
+    item = opool_get(&database->opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -253,7 +252,7 @@ void add_new_account(login_table_t *database, char *field_1, char *field_2) {
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
-        item2 = opool_get(&database->o_key);
+        item2 = opool_get(&database->opool);
         EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
         temp2 = (entry_t *)item2->data;
 
@@ -275,14 +274,14 @@ void add_new_account(login_table_t *database, char *field_1, char *field_2) {
             }
     }
 }
-void grant_access(permission_table_t *database, char *field_1, char *field_2) {
+void grant_access(permission_table_t *p_table, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(&database->o_value);
+    item = opool_get(&database->opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -293,7 +292,7 @@ void grant_access(permission_table_t *database, char *field_1, char *field_2) {
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
-        item2 = opool_get(&database->o_key);
+        item2 = opool_get(&database->opool);
         EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
         temp2 = (entry_t *)item2->data;
 
@@ -321,7 +320,7 @@ void grant_access(permission_table_t *database, char *field_1, char *field_2) {
     data_list = NULL;
     to_return = NULL;
 
-    item = opool_get(&database->o_value);
+    item = opool_get(&database->opool);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -330,7 +329,7 @@ void grant_access(permission_table_t *database, char *field_1, char *field_2) {
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_2);
 
     if (data_list == NULL) {
-        item2 = opool_get(&database->o_key);
+        item2 = opool_get(&database->opool);
         EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
         temp2 = (entry_t *)item2->data;
 
@@ -354,7 +353,7 @@ void grant_access(permission_table_t *database, char *field_1, char *field_2) {
 #endif
 }
 #if 1
-void save_login_database(login_table_t *database) {
+void save_login_database(login_table_t *l_table) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;
@@ -384,7 +383,7 @@ void save_login_database(login_table_t *database) {
 #endif
 
 #if 1
-void save_passphrase_database(passphrase_table_t *database) {
+void save_passphrase_database(passphrase_table_t *pph_table) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;
@@ -414,7 +413,7 @@ void save_passphrase_database(passphrase_table_t *database) {
 #endif
 
 #if 1
-void save_permission_database(permission_table_t *database) {
+void save_permission_database(permission_table_t *p_table) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;
