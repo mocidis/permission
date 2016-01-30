@@ -52,12 +52,12 @@ int main() {
     show_record(&login_db, "Acc_4");
 
     SHOW_LOG(3, "UPDATE TABLE LOGIN\n");
-    update_passphrase_table(&login_db, "Acc_1", "OIUC2");
-    update_passphrase_table(&login_db, "Acc_2", "OIUC3");
-    update_passphrase_table(&login_db, "Acc_3", "OIUC1");
+    add_new_account(&login_db, "Acc_1", "OIUC2");
+    add_new_account(&login_db, "Acc_2", "OIUC3");
+    add_new_account(&login_db, "Acc_3", "OIUC1");
 
     //SHOW_LOG(3, "UPDATE FILE DATABASE PASSPHRASE\n");
-    update_login_database(&login_db);
+    save_login_database(&login_db);
     SHOW_LOG(3, "SHOW TABLE LOGIN\n");
     show_record(&login_db, "Acc_1");
     show_record(&login_db, "Acc_2");
@@ -77,12 +77,12 @@ int main() {
     show_record(&passphrase_db, "RIUC14");
 
     SHOW_LOG(3, "UPDATE TABLE PASSPHRASE\n");
-    update_passphrase_table(&passphrase_db, "OIUC2", "qqqqqqq");
-    update_passphrase_table(&passphrase_db, "RIUC14", "abcxyz");
-    update_passphrase_table(&passphrase_db, "RIUC14", "12312312312");
+    add_new_passphrase(&passphrase_db, "OIUC2", "qqqqqqq");
+    add_new_passphrase(&passphrase_db, "RIUC14", "abcxyz");
+    add_new_passphrase(&passphrase_db, "RIUC14", "12312312312");
 
     //SHOW_LOG(3, "UPDATE FILE DATABASE PASSPHRASE\n");
-    update_passphrase_database(&passphrase_db);
+    save_passphrase_database(&passphrase_db);
     SHOW_LOG(3, "SHOW TABLE PASSPHRASE\n");
     show_record(&passphrase_db, "OIUC1");
     show_record(&passphrase_db, "OIUC2");
@@ -105,14 +105,14 @@ int main() {
     show_record(&permission_db, "OIUC1");
 #if 1
     SHOW_LOG(3, "UPDATE TABLE PERMISSION\n");
-    update_permission_table(&permission_db, "Acc_3", "RIUC11");
-    update_permission_table(&permission_db, "Acc_3", "RIUC14");
-    update_permission_table(&permission_db, "Acc_1", "RIUC11");
-    update_permission_table(&permission_db, "Acc_1", "RIUC13");
-    update_permission_table(&permission_db, "Acc_4", "OIUC1");
+    grant_access(&permission_db, "Acc_3", "RIUC11");
+    grant_access(&permission_db, "Acc_3", "RIUC14");
+    grant_access(&permission_db, "Acc_1", "RIUC11");
+    grant_access(&permission_db, "Acc_1", "RIUC13");
+    grant_access(&permission_db, "Acc_4", "OIUC1");
 
     SHOW_LOG(3, "UPDATE FILE DATABASE PERMISSION\n");
-    update_permission_database(&permission_db);
+    save_permission_database(&permission_db);
     SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
     show_record(&permission_db, "Acc_1");
     show_record(&permission_db, "Acc_2");

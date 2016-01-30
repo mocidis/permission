@@ -3,6 +3,7 @@
 char db_path[] = "./databases/permission.db";
 
 void show_table(db_t *db) {
+#if 0
     entry_t *temp, *entry;
     int i;
     entry_t *data_list;
@@ -17,6 +18,7 @@ void show_table(db_t *db) {
             printf("\n");
         }
     }
+#endif
 }
 
 void perm_init(db_t *database, pj_pool_t *pool) {
@@ -192,7 +194,7 @@ static int value_cmp(entry_t *n1, entry_t *n2) {
 }
 
 //======================== update table ==================================//
-void update_passphrase_table(passphrase_table_t *database, char *field_1, char *field_2) {
+void add_new_passphrase(passphrase_table_t *database, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
@@ -233,7 +235,7 @@ void update_passphrase_table(passphrase_table_t *database, char *field_1, char *
     }
 }
 
-void update_login_table(login_table_t *database, char *field_1, char *field_2) {
+void add_new_account(login_table_t *database, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
@@ -273,7 +275,7 @@ void update_login_table(login_table_t *database, char *field_1, char *field_2) {
             }
     }
 }
-void update_permission_table(permission_table_t *database, char *field_1, char *field_2) {
+void grant_access(permission_table_t *database, char *field_1, char *field_2) {
     opool_item_t *item = NULL, *item2 = NULL;
 
     entry_t *temp, *temp2, *to_return;
@@ -352,7 +354,7 @@ void update_permission_table(permission_table_t *database, char *field_1, char *
 #endif
 }
 #if 1
-void update_login_database(login_table_t *database) {
+void save_login_database(login_table_t *database) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;
@@ -382,7 +384,7 @@ void update_login_database(login_table_t *database) {
 #endif
 
 #if 1
-void update_passphrase_database(passphrase_table_t *database) {
+void save_passphrase_database(passphrase_table_t *database) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;
@@ -412,7 +414,7 @@ void update_passphrase_database(passphrase_table_t *database) {
 #endif
 
 #if 1
-void update_permission_database(permission_table_t *database) {
+void save_permission_database(permission_table_t *database) {
     sqlite3 *db;
     char sql[255];
     sqlite3_stmt *stmt;

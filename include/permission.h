@@ -28,11 +28,9 @@ struct entry_s {
 typedef struct perm_db_s permission_table_t;
 typedef struct perm_db_s login_table_t;
 typedef struct perm_db_s passphrase_table_t;
-
 typedef struct perm_db_s db_t;
 
 struct perm_db_s {
-    char *key_arr[MAX_RECORD];
     entry_t *key_list;
     opool_t o_key;
     opool_t o_value;
@@ -55,8 +53,8 @@ void remove_passphrase(passphrase_table_t *database, char *field_1, char *field_
 void grant_access(permission_table_t *database, char *field_1, char *field_2);
 void revoke_access(permission_table_t *database, char *field_1, char *field_2);
 
-void add_new_login_account(login_table_t *database, char *field_1, char *field_2);
-void remove_login_account(login_table_t *database, char *field_1, char *field_2);
+void add_new_account(login_table_t *database, char *field_1, char *field_2);
+void remove_account(login_table_t *database, char *field_1, char *field_2);
 
 void show_record(db_t *database, char *key);
 void show_table(db_t *db);
