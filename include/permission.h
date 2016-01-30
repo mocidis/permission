@@ -25,34 +25,39 @@ struct entry_s {
     entry_t *prev;
 };
 
-typedef struct db_s db_t;
+typedef struct perm_db_s permission_table_t;
+typedef struct perm_db_s login_table_t;
+typedef struct perm_db_s passphrase_table_t;
 
-struct db_s {
+typedef struct perm_db_s db_t;
+
+struct perm_db_s {
     char *key_arr[MAX_RECORD];
+    entry_t *key_list;
     opool_t o_key;
     opool_t o_value;
 
     hash_table_t ht;
 };
+void perm_init(db_t *database, pj_pool_t *pool);
 
-int get_idx(char key_arr[][255], char *key);
+void load_passphrase_db(passphrase_table_t *database);
+void load_permission_db(permission_table_t *database);
+void load_login_db(login_table_t *database);
 
-void load_passphrase_db(opool_t *opool, db_t *database);
-void update_passphrase_table(opool_t *opool, db_t *database, char *field_1, char *field_2);
+void save_passphrase_database(passphrase_table_t *database);
+void save_permission_database(permission_table_t *database);
+void save_login_database(login_table_t *database);
 
-void load_permission_db(opool_t *opool, db_t *database);
-void update_permission_table(opool_t *opool, db_t *database, char *field_1, char *field_2);
+void add_new_passphrase(passphrase_table_t *database, char *field_1, char *field_2);
+void remove_passphrase(passphrase_table_t *database, char *field_1, char *field_2);
 
-void load_login_db(opool_t *opool, db_t *database);
+void grant_access(permission_table_t *database, char *field_1, char *field_2);
+void revoke_access(permission_table_t *database, char *field_1, char *field_2);
 
-void update_database(opool_t *opool, db_t *database, char *table_name);
-void update_permission_database(opool_t *opool, db_t *database);
-
-void update_table(opool_t *opool, db_t *database, char *table_name, char *field_1, char *field_2);
+void add_new_login_account(login_table_t *database, char *field_1, char *field_2);
+void remove_login_account(login_table_t *database, char *field_1, char *field_2);
 
 void show_record(db_t *database, char *key);
 void show_table(db_t *db);
-
-entry_t *get_data_list(hash_table_t *ht, char *key);
-
 #endif

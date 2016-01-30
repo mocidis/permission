@@ -2,27 +2,6 @@
 
 char db_path[] = "./databases/permission.db";
 
-int get_idx(char key_arr[][255], char *key) {
-    int i;
-    for (i = 0; i < MAX_RECORD; i++) {
-        if (0 == strcmp(key_arr[i], key)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-static int get_array_length(char key_arr[][255]) {
-    int i, length;
-
-    length = 0;
-    for (i = 0; i < MAX_RECORD; i++) {
-        if (key_arr[i][0] != '\0') {
-            length++;
-        }
-    }
-    return length;
-}
 void show_table(db_t *db) {
     entry_t *temp, *entry;
     int i;
@@ -40,16 +19,21 @@ void show_table(db_t *db) {
     }
 }
 
-void load_login_db(opool_t *opool, db_t *database) {
+void perm_init(db_t *database, pj_pool_t *pool) {
+    opool_init(&database->o_key, 100, sizeof(entry_t), pool);
+    opool_init(&database->o_value, 100, sizeof(entry_t), pool);
+}
+
+void load_login_db(login_table_t *database) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
-    int i, n;
+    int n;
 
     opool_item_t *item, *item2;
 
-    entry_t *temp, *entry, *data_list;
-    entry_t *temp2, *entry2;
+    entry_t *temp, *data_list;
+    entry_t *temp2;
 
     data_list = NULL;
     item = NULL;
@@ -62,18 +46,9 @@ void load_login_db(opool_t *opool, db_t *database) {
     sql[n] = '\0';
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
 
-    //==================== Delele previous data of table ========================//   
-#if 0
-    for (i = 0; i < MAX_RECORD; i++) {
-        DL_FOREACH_SAFE(database->data_list[i], temp, entry) {
-            DL_DELETE(database->data_list[i], temp);
-        }
-    }
-#endif
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
-    i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(opool);
+        item = opool_get(&database->o_value);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
@@ -81,6 +56,14 @@ void load_login_db(opool_t *opool, db_t *database) {
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
         data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
         if (data_list == NULL) {
+            item2 = opool_get(&database->o_key);
+            EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+            temp2 = (entry_t *)item2->data;
+
+            ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
+
+            DL_APPEND(database->key_list, temp2);
+
             DL_APPEND(data_list, temp);
             ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
@@ -89,16 +72,17 @@ void load_login_db(opool_t *opool, db_t *database) {
         }
     }
 }
-void load_passphrase_db(opool_t *opool, db_t *database) {
+
+void load_passphrase_db(passphrase_table_t *database) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
-    int i, n;
+    int n;
 
     opool_item_t *item, *item2;
 
-    entry_t *temp, *entry, *data_list;
-    entry_t *temp2, *entry2;
+    entry_t *temp, *data_list;
+    entry_t *temp2;
 
     data_list = NULL;
     item = NULL;
@@ -110,19 +94,9 @@ void load_passphrase_db(opool_t *opool, db_t *database) {
     n = sprintf(sql ,"SELECT *FROM passphrase");
     sql[n] = '\0';
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
-
-    //==================== Delele previous data of table ========================//   
-#if 0
-    for (i = 0; i < MAX_RECORD; i++) {
-        DL_FOREACH_SAFE(database->data_list[i], temp, entry) {
-            DL_DELETE(database->data_list[i], temp);
-        }
-    }
-#endif
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
-    i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(opool);
+        item = opool_get(&database->o_value);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
@@ -130,6 +104,14 @@ void load_passphrase_db(opool_t *opool, db_t *database) {
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
         data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
         if (data_list == NULL) {
+            item2 = opool_get(&database->o_key);
+            EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+            temp2 = (entry_t *)item2->data;
+
+            ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
+
+            DL_APPEND(database->key_list, temp2);
+
             DL_APPEND(data_list, temp);
             ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
@@ -139,16 +121,16 @@ void load_passphrase_db(opool_t *opool, db_t *database) {
     }
 }
 
-void load_permission_db(opool_t *opool, db_t *database) {
+void load_permission_db(permission_table_t *database) {
     sqlite3 *db;
     char sql[50], key_temp[10];
     sqlite3_stmt *stmt;
-    int i, n;
+    int n;
 
     opool_item_t *item, *item2;
 
-    entry_t *temp, *entry, *data_list;
-    entry_t *temp2, *entry2;
+    entry_t *temp, *data_list;
+    entry_t *temp2;
 
     data_list = NULL;
     item = NULL;
@@ -162,9 +144,8 @@ void load_permission_db(opool_t *opool, db_t *database) {
     CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
 
     //===================== LOAD DATABASE (LEFT TO RIGHT) =====================================//
-    i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(opool);
+        item = opool_get(&database->o_value);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
@@ -172,6 +153,14 @@ void load_permission_db(opool_t *opool, db_t *database) {
         ansi_copy_str(temp->value, (char *)sqlite3_column_text(stmt, 1));
         data_list = (entry_t *)ht_get_item(&database->ht, (void *)key_temp);
         if (data_list == NULL) {
+            item2 = opool_get(&database->o_key);
+            EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+            temp2 = (entry_t *)item2->data;
+
+            ansi_copy_str(temp2->value, (char *)sqlite3_column_text(stmt, 0));
+
+            DL_APPEND(database->key_list, temp2);
+
             DL_APPEND(data_list, temp);
             ht_add_item(&database->ht, (void *)sqlite3_column_text(stmt, 0), data_list);
         }
@@ -181,7 +170,7 @@ void load_permission_db(opool_t *opool, db_t *database) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        item = opool_get(opool);
+        item = opool_get(&database->o_value);
         EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
         temp = (entry_t *)item->data;
 
@@ -203,15 +192,14 @@ static int value_cmp(entry_t *n1, entry_t *n2) {
 }
 
 //======================== update table ==================================//
-void update_passphrase_table(opool_t *opool, db_t *database, char *field_1, char *field_2) {
-    int length, idx;
-    opool_item_t *item = NULL;
+void update_passphrase_table(passphrase_table_t *database, char *field_1, char *field_2) {
+    opool_item_t *item = NULL, *item2 = NULL;
 
-    entry_t *temp, *to_return;
+    entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(opool);
+    item = opool_get(&database->o_value);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -222,6 +210,14 @@ void update_passphrase_table(opool_t *opool, db_t *database, char *field_1, char
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
+        item2 = opool_get(&database->o_key);
+        EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+        temp2 = (entry_t *)item2->data;
+
+        ansi_copy_str(temp2->value, field_1);
+
+        DL_APPEND(database->key_list, temp2);
+
         DL_APPEND(data_list, temp);
         ht_add_item(&database->ht, (void *)field_1, (void *)data_list);    
     }
@@ -237,15 +233,14 @@ void update_passphrase_table(opool_t *opool, db_t *database, char *field_1, char
     }
 }
 
-void update_login_table(opool_t *opool, db_t *database, char *field_1, char *field_2) {
-    int length, idx;
-    opool_item_t *item = NULL;
+void update_login_table(login_table_t *database, char *field_1, char *field_2) {
+    opool_item_t *item = NULL, *item2 = NULL;
 
-    entry_t *temp, *to_return;
+    entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(opool);
+    item = opool_get(&database->o_value);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -256,6 +251,14 @@ void update_login_table(opool_t *opool, db_t *database, char *field_1, char *fie
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
+        item2 = opool_get(&database->o_key);
+        EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+        temp2 = (entry_t *)item2->data;
+
+        ansi_copy_str(temp2->value, field_1);
+
+        DL_APPEND(database->key_list, temp2);
+
         DL_APPEND(data_list, temp);
         ht_add_item(&database->ht, (void *)field_1, (void *)data_list);    
     }
@@ -270,15 +273,14 @@ void update_login_table(opool_t *opool, db_t *database, char *field_1, char *fie
             }
     }
 }
-void update_permission_table(opool_t *opool, db_t *database, char *field_1, char *field_2) {
-    int length, idx;
-    opool_item_t *item = NULL;
+void update_permission_table(permission_table_t *database, char *field_1, char *field_2) {
+    opool_item_t *item = NULL, *item2 = NULL;
 
-    entry_t *temp, *to_return;
+    entry_t *temp, *temp2, *to_return;
 
     entry_t *data_list = NULL;
 
-    item = opool_get(opool);
+    item = opool_get(&database->o_value);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -289,7 +291,14 @@ void update_permission_table(opool_t *opool, db_t *database, char *field_1, char
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_1);
 
     if (data_list == NULL) {
-        printf("field_1: %s\n", field_1);
+        item2 = opool_get(&database->o_key);
+        EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+        temp2 = (entry_t *)item2->data;
+
+        ansi_copy_str(temp2->value, field_1);
+
+        DL_APPEND(database->key_list, temp2);
+
         DL_APPEND(data_list, temp);
         ht_add_item(&database->ht, (void *)field_1, (void *)data_list);    
     }
@@ -310,7 +319,7 @@ void update_permission_table(opool_t *opool, db_t *database, char *field_1, char
     data_list = NULL;
     to_return = NULL;
 
-    item = opool_get(opool);
+    item = opool_get(&database->o_value);
     EXIT_IF_TRUE(item == NULL, "Cannot get from object pool\n");
     temp = (entry_t *)item->data;
 
@@ -319,6 +328,14 @@ void update_permission_table(opool_t *opool, db_t *database, char *field_1, char
     data_list = (entry_t *)ht_get_item(&database->ht, (void *)field_2);
 
     if (data_list == NULL) {
+        item2 = opool_get(&database->o_key);
+        EXIT_IF_TRUE(item2 == NULL, "Cannot get from object pool\n");
+        temp2 = (entry_t *)item2->data;
+
+        ansi_copy_str(temp2->value, field_2);
+
+        DL_APPEND(database->key_list, temp2);
+
         DL_APPEND(data_list, temp);
         ht_add_item(&database->ht, (void *)field_2, (void *)data_list);    
     }
@@ -334,6 +351,100 @@ void update_permission_table(opool_t *opool, db_t *database, char *field_1, char
     }
 #endif
 }
+#if 1
+void update_login_database(login_table_t *database) {
+    sqlite3 *db;
+    char sql[255];
+    sqlite3_stmt *stmt;
+    int n;
+    entry_t *temp, *entry;
+    entry_t *temp2, *entry2;
+    entry_t *value_list;
+
+    //=========== DELETE ALL RECORD OF TABLE ===================//
+    CALL_SQLITE (open (db_path, &db));
+    n = sprintf(sql, "DELETE FROM login ");
+    sql[n] = '\0';
+    printf("%s\n", sql);
+    CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+    CALL_SQLITE_EXPECT (step (stmt), DONE);
+
+    DL_FOREACH_SAFE(database->key_list, temp, entry) {
+        value_list = (entry_t *)ht_get_item(&database->ht, (void *)temp->value);
+        DL_FOREACH_SAFE(value_list, temp2, entry2) {
+            n = sprintf(sql, "INSERT INTO login VALUES ('%s', '%s')", temp->value, temp2->value);              
+            printf("%s\n", sql);
+            CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+        }
+        CALL_SQLITE_EXPECT (step (stmt), DONE);
+    }
+}
+#endif
+
+#if 1
+void update_passphrase_database(passphrase_table_t *database) {
+    sqlite3 *db;
+    char sql[255];
+    sqlite3_stmt *stmt;
+    int n;
+    entry_t *temp, *entry;
+    entry_t *temp2, *entry2;
+    entry_t *value_list;
+
+    //=========== DELETE ALL RECORD OF TABLE ===================//
+    CALL_SQLITE (open (db_path, &db));
+    n = sprintf(sql, "DELETE FROM passphrase");
+    sql[n] = '\0';
+    printf("%s\n", sql);
+    CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+    CALL_SQLITE_EXPECT (step (stmt), DONE);
+
+    DL_FOREACH_SAFE(database->key_list, temp, entry) {
+        value_list = (entry_t *)ht_get_item(&database->ht, (void *)temp->value);
+        DL_FOREACH_SAFE(value_list, temp2, entry2) {
+            n = sprintf(sql, "INSERT INTO passphrase VALUES ('%s', '%s')", temp->value, temp2->value);              
+            printf("%s\n", sql);
+            CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+        }
+        CALL_SQLITE_EXPECT (step (stmt), DONE);
+    }
+}
+#endif
+
+#if 1
+void update_permission_database(permission_table_t *database) {
+    sqlite3 *db;
+    char sql[255];
+    sqlite3_stmt *stmt;
+    int n;
+    entry_t *temp, *entry;
+    entry_t *temp2, *entry2;
+    entry_t *value_list;
+
+    //=========== DELETE ALL RECORD OF TABLE ===================//
+    CALL_SQLITE (open (db_path, &db));
+    n = sprintf(sql, "DELETE FROM permission");
+    sql[n] = '\0';
+    printf("%s\n", sql);
+    CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+    CALL_SQLITE_EXPECT (step (stmt), DONE);
+
+    DL_FOREACH_SAFE(database->key_list, temp, entry) {
+        if ( (strstr(temp->value, "OIUC") == NULL) && (strstr(temp->value, "RIUC") == NULL)) {
+            value_list = (entry_t *)ht_get_item(&database->ht, (void *)temp->value);
+            DL_FOREACH_SAFE(value_list, temp2, entry2) {
+                n = sprintf(sql, "INSERT INTO permission VALUES ('%s', '%s')", temp->value, temp2->value);              
+                printf("%s\n", sql);
+                CALL_SQLITE (prepare_v2 (db, sql, strlen (sql) + 1, &stmt, NULL));
+                CALL_SQLITE_EXPECT (step (stmt), DONE);
+            }
+        }
+    }
+}
+#endif
+
+
+
 void show_record(db_t *database, char *key) {
     entry_t *data_list;
     entry_t *temp, *entry;
