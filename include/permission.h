@@ -55,7 +55,7 @@ void grant_access(permission_table_t *p_table, char *user_id, char *node_id);
 void revoke_access(permission_table_t *p_table, char *user_id, char *node_id);
 
 void add_active_acc(login_table_t *l_table, char *user_id, char *node_id);
-void remove_active_acc(login_table_t *l_table, char *user_id, char *node_id);
+void remove_active_acc(login_table_t *l_table, char *user_id);
 
 void show_record(perm_db_t *database, char *key);
 void show_table(perm_db_t *db);
