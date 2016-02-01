@@ -19,6 +19,8 @@ int main() {
     pj_caching_pool cp;
     pj_pool_t *pool;
 
+    char db_path[] = "./databases/permission.db";
+
     //INIT POOL
     CHECK(__FILE__, pj_init());
     SET_LOG_LEVEL(4);
@@ -27,9 +29,9 @@ int main() {
     pj_caching_pool_init(&cp, NULL, 1024);
     pool = pj_pool_create(&cp.factory, "pool", 1024, 1024, NULL);
 
-    perm_init(&permission_db, pool);
-    perm_init(&login_db, pool);
-    perm_init(&passphrase_db, pool);
+    perm_init(&permission_db, pool, db_path);
+    perm_init(&login_db, pool, db_path);
+    perm_init(&passphrase_db, pool, db_path);
 
     //INIT HASH TABLE
     ht_init(&permission_db.ht, pool);
@@ -45,53 +47,53 @@ int main() {
 #if 1
     printf("=============== Login =============\n");
     load_login_db(&login_db);
-    SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
     show_table(&login_db);
 
     SHOW_LOG(3, "UPDATE TABLE LOGIN\n");
     add_active_acc(&login_db, "Acc_1", "OIUC2");
     add_active_acc(&login_db, "Acc_2", "OIUC3");
     add_active_acc(&login_db, "Acc_3", "OIUC1");
-    SHOW_LOG(3, "SHOW TABLE LOGIN\n");
+    SHOW_LOG(3, "=== SHOW TABLE LOGIN\n");
     show_table(&login_db);
 
     remove_active_acc(&login_db, "Acc_3");
-    SHOW_LOG(3, "SHOW TABLE LOGIN\n");
+    SHOW_LOG(3, "=== SHOW TABLE LOGIN\n");
     show_table(&login_db);
 
     SHOW_LOG(3, "UPDATE FILE DATABASE PASSPHRASE\n");
     save_login_db(&login_db);
-    SHOW_LOG(3, "SHOW TABLE LOGIN\n");
+    SHOW_LOG(3, "=== SHOW TABLE LOGIN\n");
     show_table(&login_db);
 #endif
 
 #if 1
     printf("=============== Passphrase =============\n");
     load_passphrase_db(&passphrase_db);
-    SHOW_LOG(3, "SHOW TABLE PASSPHRASE\n");
+    SHOW_LOG(3, "=== SHOW TABLE PASSPHRASE\n");
     show_table(&passphrase_db);
 
     SHOW_LOG(3, "UPDATE TABLE PASSPHRASE\n");
     add_passphrase(&passphrase_db, "OIUC2", "qqqqqqq");
     add_passphrase(&passphrase_db, "RIUC14", "abcxyz");
     add_passphrase(&passphrase_db, "RIUC14", "12312312312");
-    SHOW_LOG(3, "SHOW TABLE PASSPHRASE\n");
+    SHOW_LOG(3, "=== SHOW TABLE PASSPHRASE\n");
     show_table(&passphrase_db);
 
     remove_passphrase(&passphrase_db, "RIUC14");
-    SHOW_LOG(3, "SHOW TABLE PASSPHRASE\n");
+    SHOW_LOG(3, "=== SHOW TABLE PASSPHRASE\n");
     show_table(&passphrase_db);
 
     SHOW_LOG(3, "UPDATE FILE DATABASE PASSPHRASE\n");
     save_passphrase_db(&passphrase_db);
-    SHOW_LOG(3, "SHOW TABLE PASSPHRASE\n");
+    SHOW_LOG(3, "=== SHOW TABLE PASSPHRASE\n");
     show_table(&passphrase_db);
 #endif
 
-#if 0
+#if 1
     printf("=============== Permisison =============\n");
     load_permission_db(&permission_db);
-    SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
     show_table(&permission_db);
     SHOW_LOG(3, "UPDATE TABLE PERMISSION\n");
     grant_access(&permission_db, "Acc_3", "RIUC11");
@@ -100,40 +102,49 @@ int main() {
     grant_access(&permission_db, "Acc_1", "RIUC13");
     grant_access(&permission_db, "Acc_4", "OIUC1");
 
-    SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
     show_table(&permission_db);
 
     revoke_access(&permission_db, "Acc_3", "RIUC11");
-    SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
     show_table(&permission_db);
 
     SHOW_LOG(3, "UPDATE FILE DATABASE PERMISSION\n");
     save_permission_db(&permission_db);
-    SHOW_LOG(3, "SHOW TABLE PERMISSION\n");
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
     show_table(&permission_db);
 #endif
     //==================== check_permission_table && send passphrase ========================//
-#if 0
+#if 1
     //Already has sender_id (user_id in permission_table)
-    char user_id[] = "RIUC11";
+    SHOW_LOG(3, "=== SHOW TABLE PERMISSION\n");
+    show_table(&permission_db);
 
-    entry_t *temp, *entry;
-    passphrase_table_t *passphrase_list;
-    login_table_t *login_list;
+    SHOW_LOG(3, "=== SHOW TABLE LOGIN\n");
+    show_table(&login_db);
+
+    SHOW_LOG(3, "=== SHOW TABLE PASSPHRASE\n");
+    show_table(&passphrase_db);
+    
+    char user_id[] = "Acc_1";
+
+    perm_node_t *temp, *entry;
+    perm_node_t *passphrase_list;
+    perm_node_t *login_list;
     //Get list of device id belongs to user_id
-    permission_table_t *node_id_list = (permission_table_t *)ht_get_item(&permission_db.ht, user_id);
+    perm_node_t *node_id_list = (perm_node_t *)ht_get_item(&permission_db.ht, user_id);
 
     printf("Received GM_REG with user_id: %s\n", user_id);
     //For each element of list above
     DL_FOREACH_SAFE(node_id_list, temp, entry) {
         if (strstr(user_id, "RIUC") != NULL || strstr(user_id, "OIUC")) {
 #if 1
-            login_list = (entry_t *)ht_get_item(&login_db.ht, temp->value);
+            login_list = (perm_node_t *)ht_get_item(&login_db.ht, temp->value);
             if (login_list == NULL) {
                 printf("This user_id hasn't login yet! (lol) : %s\n", temp->value);
             }
             else {
-                passphrase_list = (entry_t *)ht_get_item(&passphrase_db.ht, login_list->value);
+                passphrase_list = (perm_node_t *)ht_get_item(&passphrase_db.ht, login_list->value);
                 if (passphrase_list == NULL) {
                     printf("No passphrase for device: %s\n", login_list->value);
                 }
@@ -144,7 +155,7 @@ int main() {
 #endif
         }
         else {
-            passphrase_list = (entry_t *)ht_get_item(&passphrase_db.ht, temp->value);
+            passphrase_list = (perm_node_t *)ht_get_item(&passphrase_db.ht, temp->value);
             if (passphrase_list == NULL) {
                 printf("No passphrase for device: %s\n", temp->value);
             }

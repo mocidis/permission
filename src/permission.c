@@ -2,7 +2,8 @@
 
 char db_path[] = "./databases/permission.db";
 
-void perm_init(perm_db_t *database, pj_pool_t *pool) {
+void perm_init(perm_db_t *database, pj_pool_t *pool, char *db_path) {
+    ansi_copy_str(database->db_path, db_path);
     opool_init(&database->opool, 100, sizeof(perm_node_t), pool);
 }
 

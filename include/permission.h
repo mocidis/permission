@@ -17,7 +17,6 @@
 
 extern char db_path[];
 //chinh func pinter
-//login->active_acc
 
 typedef struct perm_node_s perm_node_t;
 
@@ -34,12 +33,13 @@ typedef struct perm_db_s pph_table_t;
 typedef struct perm_db_s perm_db_t;
 
 struct perm_db_s {
+    char db_path[100];
     perm_node_t *key_list;
     opool_t opool;
     hash_table_t ht;
 };
 
-void perm_init(perm_db_t *database, pj_pool_t *pool);
+void perm_init(perm_db_t *database, pj_pool_t *pool, char *db_path);
 
 void load_passphrase_db(pph_table_t *pph_table);
 void load_login_db(l_table_t *l_table);
